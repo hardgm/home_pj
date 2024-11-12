@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AJAX Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>LED ON OFF</h1>
+    <button id="ledOn">LED ON</button>
+	<button id="ledOff">LED OFF</button>
+    <div id="response"></div>
+
+    <script>
+        // 버튼 클릭 시 AJAX 요청
+        $('#ledOn').click(function() {
+            $.ajax({
+                url: '/led/on',  // 서버의 URI
+                type: 'GET',  // 요청 방식 (GET, POST 등)
+                success: function(response) {
+                    // 서버 응답을 받은 후 처리
+                    $('#response').text('서버 응답: ' + response);
+                },
+                error: function(xhr, status, error) {
+                    // 에러 처리
+                    $('#response').text('에러 발생: ' + error);
+                }
+            });
+        });
+
+		$('#ledOff').click(function() {
+            $.ajax({
+                url: '/led/off',  // 서버의 URI
+                type: 'GET',  // 요청 방식 (GET, POST 등)
+                success: function(response) {
+                    // 서버 응답을 받은 후 처리
+                    $('#response').text('서버 응답: ' + response);
+                },
+                error: function(xhr, status, error) {
+                    // 에러 처리
+                    $('#response').text('에러 발생: ' + error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
