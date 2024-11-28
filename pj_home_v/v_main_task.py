@@ -23,8 +23,8 @@ try:
             if data == "pwd_comp_err":
                 data = "wait"
             
-            #if data == "sonic":
-            #    data = "wait"
+            if data == "sonic":
+                data = "wait"
 
             if data == "bell":
                 data = "wait"
