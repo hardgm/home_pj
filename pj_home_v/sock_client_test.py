@@ -1,25 +1,45 @@
 import socket
+import time
 
-def start_client():
-    # 서버 주소 및 포트 설정
-    host = '127.0.0.1'  # 서버 IP (서버와 동일한 컴퓨터에서 실행)
-    port = 65432        # 서버에서 사용한 포트 번호
+host = '127.0.0.1'  # 로컬 호스트
+port = 65432        # 포트 번호 (클라이언트가 동일한 포트로 연결)
 
-    # 클라이언트 소켓 생성
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        # 서버에 연결
-        client_socket.connect((host, port))
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        while True:
-            # 서버로 메시지 전송
-            message = input("서버에 보낼 메시지를 입력하세요: ")
-            if message.lower() == 'exit':
-                break  # 'exit' 입력 시 연결 종료
-            client_socket.sendall(message.encode())
+# 서버로 메시지 전송
+try:
+        message = "test1"
+        client_socket.sendto(message.encode(),(host,port))
 
-            # 서버의 응답 수신
-            data = client_socket.recv(1024)
-            print(f"서버로부터 응답 수신: {data.decode()}")
+        # 서버로부터 응답 받기
+        response, server_address = client_socket.recvfrom(1024)
+        pic_addr = response.decode()
+        print(f"서버로부터 응답: {pic_addr}")
 
-if __name__ == "__main__":
-    start_client()
+        time.sleep(1)
+
+        message = "test2"
+        client_socket.sendto(message.encode(),(host,port))
+
+        # 서버로부터 응답 받기
+        response, server_address = client_socket.recvfrom(1024)
+        pic_addr = response.decode()
+        print(f"서버로부터 응답: {pic_addr}")
+
+        time.sleep(1)
+
+        message = "test3"
+        client_socket.sendto(message.encode(),(host,port))
+
+        # 서버로부터 응답 받기
+        response, server_address = client_socket.recvfrom(1024)
+        pic_addr = response.decode()
+        print(f"서버로부터 응답: {pic_addr}")
+
+        
+except Exception as e:
+    print(f"에러 발생: {e}")
+
+finally:
+    # 소켓 닫기
+    client_socket.close()

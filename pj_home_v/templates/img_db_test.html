@@ -14,7 +14,7 @@
                 <p>{{ image[1] }}</p>
                 <p>{{ image[2] }}</p>
                 <p>{{ image[3] }}</p>
-                <img src="{{ url_for('static', filename='images/' + image[4]) }}" alt="{{ image[4] }}" width="300" height="200" >
+                <img src="{{ url_for('static', filename='images/' + image[4]) + '.jpg' }}" alt="{{ image[4] }}" width="300" height="200" >
             </li>
         {% endfor %}
     </ul>

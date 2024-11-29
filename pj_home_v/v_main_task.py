@@ -1,7 +1,32 @@
 import serial
+import socket
+import pymysql
 import time
 
+host = '127.0.0.1'  # 로컬 호스트
+port = 65432        # 포트 번호 (클라이언트가 동일한 포트로 연결)
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+def send_and_receive_message(message, host, port):
+    client_socket.sendto(message.encode(), (host, port))
+    response, server_address = client_socket.recvfrom(1024)
+    pic_addr = response.decode()
+    print(f"서버로부터 응답: {pic_addr}")
+    return pic_addr
+
 try:
+    # MariaDB 데이터베이스 연결
+    conn = pymysql.connect(
+    host='localhost',      # 데이터베이스 호스트
+    user='root',   # 사용자 이름
+    password='ubuntu', # 비밀번호
+    database='raspi_db' # 데이터베이스 이름
+    )
+
+    # 커서 객체 생성
+    cursor = conn.cursor()
+
     ser = serial.Serial('/dev/serial0',9600,timeout=1)
     time.sleep(2)
     message = "from RPI!"
@@ -20,13 +45,17 @@ try:
                 ser.write(message.encode('ascii'))
                 data = "wait"
 
-            if data == "pwd_comp_err":
-                data = "wait"
-            
-            if data == "sonic":
-                data = "wait"
+            if data in ["pwd_comp_err", "sonic", "bell"]:
+                response = send_and_receive_message(data, host, port)
+                cursor.execute('INSERT INTO user_info (name, address) VALUES (%s,%s)', (data,response))
+                conn.commit()
 
-            if data == "bell":
+                cursor.execute('SELECT * FROM user_info')
+                rows = cursor.fetchall()
+                for row in rows:
+                    print(row)
+                    print()
+
                 data = "wait"
 
 except Exception as e:
@@ -34,4 +63,7 @@ except Exception as e:
 
 finally:
     ser.close()
+    client_socket.close()
     file.close()
+    cursor.close()
+    conn.close()
