@@ -32,8 +32,7 @@ try:
     message = "from RPI!"
     ser.write(message.encode('ascii'))
 
-    file = open("passwd_rpi", "r")
-    stored_passwd = file.read()
+    
 
     while True:
         if ser.in_waiting > 0:
@@ -41,7 +40,10 @@ try:
             print(f"Received: {data}")
 
             if data == "pwd_comp":
-                message = stored_passwd
+                
+                with open("passwd_rpi", "r") as file:
+                    message = file.read()
+                
                 ser.write(message.encode('ascii'))
                 data = "wait"
 
@@ -69,6 +71,5 @@ except Exception as e:
 finally:
     ser.close()
     client_socket.close()
-    file.close()
     cursor.close()
     conn.close()

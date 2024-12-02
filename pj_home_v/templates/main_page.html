@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOOR-LOCK</title>
+
+    <script>
+        function changeImage(imageSrc) {
+        // 이미지 공간에 새로운 이미지 경로 설정
+            document.getElementById('imageSpace').src = imageSrc;
+        }
+
+        function changePwd(){
+            let input = prompt("바꿀 비밀번호를 입력하세요 (1~4 사이의 숫자 4개):");
+
+            // 입력값이 null(취소 클릭)인 경우 처리
+            if (input === null) {
+                alert("입력이 취소되었습니다.");
+            } else {
+                // 입력값이 1~4 사이의 숫자 4개인지 확인하는 정규식
+                let isValid = /^[1-4]{4}$/.test(input);
+
+                if (isValid) {
+                    // 서버에 데이터를 전송
+                fetch('/pwd_change', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: input })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // alert('서버 응답: ' + JSON.stringify(data));
+                alert("성공적으로 반영되었습니다.");
+            })
+            .catch(error => {
+                console.error('서버 요청 중 오류 발생:', error);
+                alert('서버 요청 중 오류가 발생했습니다.');
+            });
+                } else {
+                    alert("입력값이 잘못되었습니다. 1~4 사이의 숫자 4개만 입력할 수 있습니다.");
+                }
+            }
+
+}
+
+    </script>
+
+</head>
+<body>
+    <table border="1">
+        <tr>
+        <td colspan="5">
+        <center><h1><b>DOOR-LOCK</b></h1></td></center>
+        </tr>
+        <tr>
+        <td colspan="5"><center>
+        <img id="imageSpace" src = "#" width = "400" height = "400"></img>
+        </center></td>
+        </tr>
+        <tr>
+        <td>문열기</td>
+        <td>문닫기</td>
+        <td>
+            <a href = "/auth">입장기록열람</a>
+        </td>
+        <td>
+            <a href = "/dis">침입의심로그</a>
+        </td>
+        <td>
+            <a href = "#" onclick ="changePwd()">비밀번호 변경</a>
+        </td>
+        </tr>
+        <tr>
+        <td>유형</td>
+        <td>날짜</td>
+        <td>시간</td>
+        <td>조회</td>
+        <td>삭제</td>
+        </tr>
+        {% for image in images %}
+        <tr>            
+        
+            {% if image[1] == 'pwd_comp_corr' %}    
+                <td>비밀번호성공</td>
+            {% elif image[1] == 'pwd_comp_err' %}
+                <td>비밀번호실패</td>
+            {% else %}
+                <td>오류</td>
+            {% endif %}
+        
+            <td>{{ image[2] }}</td>
+            <td>{{ image[3] }}</td>
+
+            <td>
+                <a href = "#" onclick="changeImage('{{ url_for('static', filename='images/' + image[4]) + '.jpg' }}')">조회</a>
+            </td>
+            <td>
+                <a href = "/del?name_d={{image[1]}}&address_d={{image[4]}}">삭제</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+        
+        <!-- 기존 테스트 코드 
+    <ul>
+        {% for image in images %}
+            <li>
+                <p>{{ image[0] }}</p>
+                <p>{{ image[1] }}</p>
+                <p>{{ image[2] }}</p>
+                <p>{{ image[3] }}</p>
+                <img src="{{ url_for('static', filename='images/' + image[4]) + '.jpg' }}" alt="{{ image[4] }}" width="300" height="200" >
+            </li>
+        {% endfor %}
+    </ul>
+    -->
+</body>
+</html>

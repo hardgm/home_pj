@@ -1,8 +1,11 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify, redirect
 import pymysql
+import os
 from flask_mysqldb import MySQL
 
 app = Flask(__name__)
+
+static_folder_path = os.path.join(app.root_path, 'static/images')
 
 # MariaDB 데이터베이스 연결 설정
 app.config['MYSQL_HOST'] = 'localhost'  # MariaDB 호스트
@@ -15,13 +18,65 @@ mysql = MySQL(app)
 
 @app.route('/')
 def index():
+    # 조회된 이미지 파일명과 업로드 시간 전달
+    return render_template('main_page.html')
+
+@app.route('/auth')
+def auth():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM user_info")
+    cur.execute("SELECT * FROM user_info where name = 'pwd_comp_corr'")
     images = cur.fetchall()  # 쿼리 결과를 튜플 리스트로 반환
     cur.close()
     
     # 조회된 이미지 파일명과 업로드 시간 전달
-    return render_template('img_db_test.html', images=images)
+    return render_template('main_page.html', images=images)
 
+@app.route('/dis')
+def dis():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM user_info where name = 'pwd_comp_err'")
+    images = cur.fetchall()  # 쿼리 결과를 튜플 리스트로 반환
+    cur.close()
+    
+    # 조회된 이미지 파일명과 업로드 시간 전달
+    return render_template('main_page.html', images=images)
+
+@app.route('/del', methods=['GET'])
+def delete():
+    # GET 매개변수 가져오기
+    name_d = request.args.get('name_d')
+    address_d = request.args.get('address_d')
+    
+    file_path = os.path.join(static_folder_path, address_d+".jpg")
+    
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        return jsonify({"error": "File not found"}), 404
+
+    cur = mysql.connection.cursor()
+    cur.execute("delete from user_info where address = %s",(address_d,))
+    mysql.connection.commit()
+    cur.close()
+
+    if name_d == "pwd_comp_corr":
+        return redirect('/auth')
+
+    if name_d == "pwd_comp_err":
+        return redirect('/dis')
+
+    # JSON 응답 반환
+    return jsonify({'message': response_message})
+
+@app.route('/pwd_change', methods=['POST'])
+def handle_password():
+    data = request.get_json()
+    password = data.get('password')
+
+    with open("passwd_rpi", "w") as file:
+        file.write(password)
+
+    return jsonify({"message": password})
+    
 if __name__ == '__main__':
     app.run(debug=True, port=80, host='0.0.0.0')
