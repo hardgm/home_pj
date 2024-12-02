@@ -107,14 +107,11 @@ void bell_pushed(){
 void sonic_touched(){
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("WHO R U?");
+  lcd.print("HELLO");
 
   message = "sonic";
   mySerial.println(message);
-
-  analogWrite(buzzerPin, 100);
   delay(500);
-  analogWrite(buzzerPin, 0);
   
   lcd.clear();
 }
@@ -238,7 +235,7 @@ void loop(){
   }
 
   if(distance != -1){
-		if(distance < 10)
+		if(distance < 50)
 		{
       if (!isHighPrinted) {  // 이미 HIGH가 출력되지 않았다면
       sonic_touched();

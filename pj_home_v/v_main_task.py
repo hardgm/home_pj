@@ -45,7 +45,13 @@ try:
                 ser.write(message.encode('ascii'))
                 data = "wait"
 
-            if data in ["pwd_comp_corr","pwd_comp_err", "sonic", "bell"]:
+            if data == "sonic":
+                data = "wait"
+            
+            if data == "bell":
+                data = "wait"
+
+            if data in ["pwd_comp_corr","pwd_comp_err"]:
                 response = send_and_receive_message(data, host, port)
                 cursor.execute('INSERT INTO user_info (name, address) VALUES (%s,%s)', (data,response))
                 conn.commit()
