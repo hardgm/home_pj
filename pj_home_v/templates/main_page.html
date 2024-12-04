@@ -4,8 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOOR-LOCK</title>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script>
+
+            const socket = io();  // 현재 페이지의 주소와 포트로 자동 연결
+            
+            socket.on('show_alert', function(data) {
+                if(data=="sonic"){
+                    alert("근거리에 누군가 접근하였습니다.");
+                }
+
+                if(data =="pwd_comp_err"){
+                    alert("침입 시도가 감지되었습니다.");
+                }
+                
+            });
+
+            function openDoorExec(){
+                socket.emit('message', 'openDoor');
+            }
+            
+            function lockDoorExec(){
+                socket.emit('message', 'lockDoor');
+            }
+                
+
         function changeImage(imageSrc) {
         // 이미지 공간에 새로운 이미지 경로 설정
             document.getElementById('imageSpace').src = imageSrc;
@@ -61,8 +84,12 @@
         </center></td>
         </tr>
         <tr>
-        <td>문열기</td>
-        <td>문닫기</td>
+        <td>
+            <a href = "#" onclick="openDoorExec()">잠금해제</a>
+        </td>
+        <td>
+            <a href = "#" onclick="lockDoorExec()">잠금</a>
+        </td>
         <td>
             <a href = "/auth">입장기록열람</a>
         </td>

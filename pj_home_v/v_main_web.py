@@ -2,8 +2,26 @@ from flask import Flask, render_template, request, jsonify, redirect
 import pymysql
 import os
 from flask_mysqldb import MySQL
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
+
+socketio = SocketIO(app, cors_allowed_origins="*")  # CORS 설정
+@socketio.on('message')
+def handle_message(data):
+    print('Received message from Python client:', data)
+    # 받은 메시지를 웹 클라이언트로 전달 (경고창으로 띄우도록)
+
+    if data in ["sonic","pwd_comp_err"]:
+        emit('show_alert', data, broadcast=True)
+
+    if data in ["openDoor","lockDoor"]:
+        emit('doorControl', data, broadcast=True)
+
+
+#@socketio.on('send_command')
+#def send_command(data):
+#    print(f'명령 수신: {data}')
 
 static_folder_path = os.path.join(app.root_path, 'static/images')
 
@@ -79,4 +97,5 @@ def handle_password():
     return jsonify({"message": password})
     
 if __name__ == '__main__':
-    app.run(debug=True, port=80, host='0.0.0.0')
+    #app.run(debug=True, port=80, host='0.0.0.0')
+    socketio.run(app, debug=True, host='0.0.0.0', port=80)

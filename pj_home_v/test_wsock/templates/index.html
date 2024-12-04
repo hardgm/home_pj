@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SocketIO Alert Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>        
+            const socket = io();  // 현재 페이지의 주소와 포트로 자동 연결
+            socket.on('show_alert', function(data) {
+                alert(data);
+            });
+    </script>
+</head>
+<body>
+    <h1>SocketIO Communication Example</h1>
+    <p>Open the Python client to send a message to this page.</p>
+</body>
+</html>
