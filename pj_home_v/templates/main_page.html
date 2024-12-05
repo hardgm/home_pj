@@ -6,6 +6,7 @@
     <title>DOOR-LOCK</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script>
+            let image_addr = "{{ url_for('static', filename='images/')}}";
 
             const socket = io();  // 현재 페이지의 주소와 포트로 자동 연결
             
@@ -20,6 +21,36 @@
                 
             });
 
+            socket.on('bell_pushed', (data) => {
+            
+                document.getElementById('popupModal').style.display = 'block';
+                document.querySelector('.modal-content p:nth-child(2)').textContent = data.msg;
+                //document.querySelector('.modal-content p:nth-child(3)').textContent = image_addr + data.img + '.jpg';
+                document.querySelector('.modal-content img').src = image_addr + data.img + '.jpg';
+            });
+
+            function openPopup() {
+                document.getElementById('popupModal').style.display = 'block';
+            }
+
+            function closePopup() {
+                document.getElementById('popupModal').style.display = 'none';
+            }
+
+            function submitAgree() {
+                alert("승락하였습니다. 문이 열립니다.");
+                socket.emit('message', 'openDoor');
+                socket.emit('message', 'bell_agree');
+                closePopup();
+            }
+
+            function submitDisagree(){ 
+                alert("거절하였습니다.");
+                socket.emit('message', 'bell_disagree');
+                closePopup();
+            }
+
+
             function openDoorExec(){
                 socket.emit('message', 'openDoor');
             }
@@ -27,6 +58,8 @@
             function lockDoorExec(){
                 socket.emit('message', 'lockDoor');
             }
+
+            
                 
 
         function changeImage(imageSrc) {
@@ -73,6 +106,40 @@
 
 </head>
 <body>
+    <style>
+        .modal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 600px;
+          background-color: white;
+          border: 1px solid #ccc;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          z-index: 1000;
+        }
+        .modal-content {
+          padding: 20px;
+          text-align: center;
+        }
+        .modal input {
+          width: 100%;
+          margin-bottom: 10px;
+        }
+      </style>
+
+    <div id="popupModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>알림</h2> <!-- 제목 -->
+            <p></p>
+            <p></p>
+            <img src="#" width="400" height="400"/>
+            <p>
+                <button onclick="submitAgree()">승락</button>
+                <button onclick="submitDisagree()">거절</button>
+            </p>
+        </div>
+    </div>
     <table border="1">
         <tr>
         <td colspan="5">
@@ -114,6 +181,10 @@
                 <td>비밀번호성공</td>
             {% elif image[1] == 'pwd_comp_err' %}
                 <td>비밀번호실패</td>
+            {% elif image[1] == 'bell_agree' %}
+                <td>초인종승인</td>
+            {% elif image[1] == 'bell_disagree' %}
+                <td>초인종거절</td>
             {% else %}
                 <td>오류</td>
             {% endif %}

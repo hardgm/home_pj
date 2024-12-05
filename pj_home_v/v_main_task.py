@@ -78,8 +78,19 @@ try:
                 data = "wait"
             
             if data == "bell":
+                response = send_and_receive_message(data, host, port)
+
+                cursor.execute('INSERT INTO user_info (name, address) VALUES (%s,%s)', (data,response))
+                conn.commit()
+
+                cursor.execute('SELECT * FROM user_info')
+                rows = cursor.fetchall()
+                for row in rows:
+                    print(row)
+
+                sio.emit('message', response)
                 data = "wait"
-                #추후 초인종 구현시 로직 삽입.
+                
 
             if data == "pwd_comp_corr":
                 response = send_and_receive_message(data, host, port)

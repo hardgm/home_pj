@@ -3,25 +3,9 @@ import pymysql
 import os
 from flask_mysqldb import MySQL
 from flask_socketio import SocketIO, emit
+from datetime import datetime
 
 app = Flask(__name__)
-
-socketio = SocketIO(app, cors_allowed_origins="*")  # CORS 설정
-@socketio.on('message')
-def handle_message(data):
-    print('Received message from Python client:', data)
-    # 받은 메시지를 웹 클라이언트로 전달 (경고창으로 띄우도록)
-
-    if data in ["sonic","pwd_comp_err"]:
-        emit('show_alert', data, broadcast=True)
-
-    if data in ["openDoor","lockDoor"]:
-        emit('doorControl', data, broadcast=True)
-
-
-#@socketio.on('send_command')
-#def send_command(data):
-#    print(f'명령 수신: {data}')
 
 static_folder_path = os.path.join(app.root_path, 'static/images')
 
@@ -34,6 +18,52 @@ app.config['MYSQL_DB'] = 'raspi_db'  # 사용할 데이터베이스
 # MySQL 연결 객체 생성
 mysql = MySQL(app)
 
+socketio = SocketIO(app, cors_allowed_origins="*")  # CORS 설정
+@socketio.on('message')
+def handle_message(data):
+    print('Received message from Python client:', data)
+    # 받은 메시지를 웹 클라이언트로 전달 (경고창으로 띄우도록)
+
+    if data in ["sonic","pwd_comp_err"]:
+        emit('show_alert', data, broadcast=True)
+
+    elif data in ["openDoor","lockDoor"]:
+        emit('doorControl', data, broadcast=True)
+
+    elif data in ["bell_agree","bell_disagree"]:
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE user_info SET name = %s WHERE name = %s", (data, 'bell'))
+        mysql.connection.commit()
+
+        cur.execute("SELECT * FROM user_info")
+        results = cur.fetchall()
+        
+        for row in results:
+            print(row)
+
+        cur.close()
+
+    else:
+        #cur = mysql.connection.cursor()
+        #cur.execute("SELECT * FROM user_info WHERE name = 'bell' and address = "+data)
+        #result = cur.fetchone()  # 한 튜플만 가져오기
+
+        #if result:
+        #    img_input = result[4]
+
+        #cur.close()
+        
+        emit('bell_pushed', {
+        "msg": "누군가 초인종을 눌렀습니다.",
+        "img": data
+    }, broadcast=True)
+
+#@socketio.on('send_command')
+#def send_command(data):
+#    print(f'명령 수신: {data}')
+
+
+
 @app.route('/')
 def index():
     # 조회된 이미지 파일명과 업로드 시간 전달
@@ -42,7 +72,7 @@ def index():
 @app.route('/auth')
 def auth():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM user_info where name = 'pwd_comp_corr'")
+    cur.execute("SELECT * FROM user_info where name = 'pwd_comp_corr' or name = 'bell_agree'")
     images = cur.fetchall()  # 쿼리 결과를 튜플 리스트로 반환
     cur.close()
     
@@ -52,7 +82,7 @@ def auth():
 @app.route('/dis')
 def dis():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM user_info where name = 'pwd_comp_err'")
+    cur.execute("SELECT * FROM user_info where name = 'pwd_comp_err' or name = 'bell_disagree'")
     images = cur.fetchall()  # 쿼리 결과를 튜플 리스트로 반환
     cur.close()
     
@@ -77,10 +107,10 @@ def delete():
     mysql.connection.commit()
     cur.close()
 
-    if name_d == "pwd_comp_corr":
+    if name_d in ["pwd_comp_corr","bell_agree"]:
         return redirect('/auth')
 
-    if name_d == "pwd_comp_err":
+    if name_d in ["pwd_comp_err","bell_disagree"]:
         return redirect('/dis')
 
     # JSON 응답 반환
