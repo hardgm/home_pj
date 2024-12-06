@@ -18,11 +18,11 @@ app.config['MYSQL_DB'] = 'raspi_db'  # 사용할 데이터베이스
 # MySQL 연결 객체 생성
 mysql = MySQL(app)
 
-socketio = SocketIO(app, cors_allowed_origins="*")  # CORS 설정
+socketio = SocketIO(app, cors_allowed_origins="*")
 @socketio.on('message')
 def handle_message(data):
     print('Received message from Python client:', data)
-    # 받은 메시지를 웹 클라이언트로 전달 (경고창으로 띄우도록)
+
 
     if data in ["sonic","pwd_comp_err"]:
         emit('show_alert', data, broadcast=True)
@@ -66,27 +66,25 @@ def handle_message(data):
 
 @app.route('/')
 def index():
-    # 조회된 이미지 파일명과 업로드 시간 전달
     return render_template('main_page.html')
 
 @app.route('/auth')
 def auth():
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM user_info where name = 'pwd_comp_corr' or name = 'bell_agree'")
-    images = cur.fetchall()  # 쿼리 결과를 튜플 리스트로 반환
+    images = cur.fetchall()
     cur.close()
     
-    # 조회된 이미지 파일명과 업로드 시간 전달
     return render_template('main_page.html', images=images)
 
 @app.route('/dis')
 def dis():
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM user_info where name = 'pwd_comp_err' or name = 'bell_disagree'")
-    images = cur.fetchall()  # 쿼리 결과를 튜플 리스트로 반환
+    images = cur.fetchall()  
     cur.close()
     
-    # 조회된 이미지 파일명과 업로드 시간 전달
+    
     return render_template('main_page.html', images=images)
 
 @app.route('/del', methods=['GET'])
@@ -113,7 +111,6 @@ def delete():
     if name_d in ["pwd_comp_err","bell_disagree"]:
         return redirect('/dis')
 
-    # JSON 응답 반환
     return jsonify({'message': response_message})
 
 @app.route('/pwd_change', methods=['POST'])
