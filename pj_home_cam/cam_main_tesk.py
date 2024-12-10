@@ -2,6 +2,7 @@ import socket
 from picamera2 import Picamera2
 from datetime import datetime
 import time
+from PIL import Image
 
 host = '127.0.0.1'
 port = 65432
@@ -20,7 +21,18 @@ try:
         message_str = message.decode()
         print(f"클라이언트({client_address})로부터 메시지 수신: {message_str}")
         name = datetime.now().strftime("%m-%d-%H-%M-%S")
-        picam2.capture_file("../pj_home_v/static/images/"+name+".jpg")
+        image_path = f"../pj_home_v/static/images/{name}.jpg"
+
+        #picam2.capture_file("../pj_home_v/static/images/"+name+".jpg")
+        picam2.capture_file(image_path)
+
+        with Image.open(image_path) as img:
+            # 이미지를 180도 회전
+            rotated_img = img.rotate(180)
+            
+            # 회전된 이미지를 다시 저장 (같은 경로에 덮어쓰거나 다른 이름으로 저장 가능)
+            rotated_img.save(image_path)
+        
         server_socket.sendto(name.encode(),client_address)
 
 except Exception as e:
